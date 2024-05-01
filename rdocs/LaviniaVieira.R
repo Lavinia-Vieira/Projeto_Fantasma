@@ -3,29 +3,30 @@
 
 #______ Pacotes ----
 
-pacman::p_load(tidyverse, readr, readxl, lubridate, janitor)
+library(tidyverse)
 
 #______ Diretorio de trabalho ----
 
-setwd('D:/Documentos/Lavinia/PS/PF/Projeto_Fantasma/rdocs') #getwd() retorna o diretório atual
+setwd('D:/Documentos/lavinia/PS/PF/Projeto_Fantasma/rdocs') #getwd() retorna o diretorio atual
 
 #______ Banco de dados ----
 
-banco_final <- read_csv("D:/Documentos/Lavinia/PS/PF/Projeto_Fantasma/banco/banco_final.csv")
+banco_final <- read_csv("D:/Documentos/lavinia/PS/PF/Projeto_Fantasma/banco/banco_final.csv")
 View(banco_final)
 
 #______ Analise 1 ----
 
-#______ Organizacao do banco de dados ----
+#______ Organizacao do banco de dados
 
 formato_data <- banco_final %>%
   select(format, date_aired) %>%
-  rename("Decada" = date_aired, "Formato" = format) %>%
+  rename("Formato" = format, "Decada"= date_aired) %>%
   mutate(
     Formato = case_when(
     Formato == ("CrossOver") ~ "CrossOver",
     Formato == ("Movie") ~ "Filme",
     Formato == ("Serie") ~ "Serie"))
+  
 
 formato_data$Decada <- formato_data$Decada %>%
   floor_date(unit = c("10 years")) %>%
@@ -33,48 +34,51 @@ formato_data$Decada <- formato_data$Decada %>%
 
 formato_data <- formato_data %>%
   group_by(Formato, Decada) %>%
-  arrange(Formato, Decada, sort = T, .by_group = F) %>%
-  summarise(Total = n()) %>%
-  mutate(
-    freq_relativa = round(Total / sum(Total) * 100,1)
-  )
+  arrange(Formato, Decada, sort = T, .by_group = T) %>%
+  summarise(Total = n())
 
 # formatoData <- with(formato_data, table(Formato, Decada)) - Table com colunas logicas
 
-#______ Graficos colunas freq relativa ----
-
-porcentagens <- str_c(formato_data$freq_relativa, "%") %>%
-  str_replace("\\.", ",")
-
-legendas <- str_squish(str_c(porcentagens))
+#______ Grafico de linhas
 
 ggplot(formato_data) +
-  aes(x = fct_reorder(Formato, Total, .desc = T), y = freq_relativa,
-      fill = Decada, label = legendas) +
-  geom_col(position = position_dodge2(preserve = "single", padding = 0)) +
-  geom_text(position = position_dodge(width = .9),
-            vjust = -0.5, hjust = 0.5, size = 3) +
-  labs(x = "Formato", y = "Frequencia relativa") +
+  aes(x = Decada, y = Total, group = Formato, colour = Formato) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  labs(x = "Decada", y = "Frequencia") +
   estat_theme()
-ggsave("graficoColFreqRelA1.pdf", plot = last_plot(), device = "pdf",
-       path = "D:/Documentos/Lavinia/PS/PF/Projeto_Fantasma/resultados",
-       width = 158, height = 93, units = "mm")
+ggsave("graficoLinhasA1.pdf",  width = 158, height = 93, units = "mm")
 
+#______ Analise 2 ----
 
-#_____ Boxplot ----
+#______ Organizacao do banco de dados
 
-ggplot(formato_data) +
-  aes(x = reorder(Formato, Total, FUN = median), y = Total) +
-  geom_boxplot(fill = c("#A11D21"), width = 0.5) +
-  stat_summary(
-    fun = "mean", geom = "point", shape = 23, size = 3, fill = "white") +
-  labs(x = "Formato", y = "Total de lancamentos") +
-  estat_theme()
-ggsave("boxFormatoData.pdf", plot = last_plot(), device = "pdf",
-       path = "D:/Documentos/Lavinia/PS/PF/Projeto_Fantasma/resultados",
-       width = 158, height = 93, units = "mm")
+temp_nota <- banco_final %>%
+  select(format, season, imdb) %>%
+  filter(format == "Serie") %>%
+  group_by(season) %>%
+  filter(season != "Special") %>%
+  arrange(season) %>%
+  rename("Temporada" = season, "IMDB" = imdb) %>%
+  select(Temporada, IMDB) %>%
+  mutate(
+    Media = mean(IMDB),
+    Variancia = var(IMDB)
+  )
+
+view(temp_nota)
+
+#______ Separacao p/ temporada e variancia p/ temporada
+
 
 
 #______ Remove ----
   
 rm()
+
+#______ sei la ----
+
+ # %>%
+  mutate(
+    freq_relativa = round(Total / sum(Total) * 100,1)
+  )
