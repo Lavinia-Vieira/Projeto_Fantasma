@@ -56,19 +56,24 @@ ggsave("graficoLinhasA1.pdf",  width = 158, height = 93, units = "mm")
 temp_nota <- banco_final %>%
   select(format, season, imdb) %>%
   filter(format == "Serie") %>%
-  group_by(season) %>%
   filter(season != "Special") %>%
+  group_by(season) %>%
   arrange(season) %>%
   rename("Temporada" = season, "IMDB" = imdb) %>%
   select(Temporada, IMDB) %>%
   mutate(
-    Media = mean(IMDB),
-    Variancia = var(IMDB)
-  )
+    Media = round(mean(IMDB), digits = 2),
+    Variancia = round(var(IMDB), digits = 2))
+
+temp_nota$Media <- str_replace(temp_nota$Media, "\\.", ",")
+temp_nota$IMDB <- str_replace(temp_nota$IMDB, "\\.", ",")
 
 view(temp_nota)
 
-#______ Separacao p/ temporada e variancia p/ temporada
+fruits <- c("one apple", "two pears", "three bananas")
+str_replace_all(fruits, "[aeiou]", "-")
+
+#______ 
 
 
 
