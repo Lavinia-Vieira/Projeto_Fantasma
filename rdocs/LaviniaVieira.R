@@ -82,15 +82,15 @@ ggsave("boxA2.pdf", path = ("D:/documentos/lavinia/PS/PF/Projeto_Fantasma/result
 
 print_quadro_resumo <- function(data, title="Medidas resumo da(o) [nome da variável]", label="quad:quadro_resumo1")
 {
-  data <- data %>%
-    summarize(`Média` = round(mean(displ),2),
-              `Desvio Padrão` = round(sd(displ),2),
-              `Variância` = round(var(displ),2),
-              `Mínimo` = round(min(displ),2),
-              `1º Quartil` = round(quantile(displ, probs = .25),2),
-              `Mediana` = round(quantile(displ, probs = .5),2),
-              `3º Quartil` = round(quantile(displ, probs = .75),2),
-              `Máximo` = round(max(displ),2)) %>%
+  data <- temp_nota %>%
+    summarize(`Média` = round(mean(IMDB),2),
+              `Desvio Padrão` = round(sd(IMDB),2),
+              `Variância` = round(var(IMDB),2),
+              `Mínimo` = round(min(IMDB),2),
+              `1º Quartil` = round(quantile(IMDB, probs = .25),2),
+              `Mediana` = round(quantile(IMDB, probs = .5),2),
+              `3º Quartil` = round(quantile(IMDB, probs = .75),2),
+              `Máximo` = round(max(IMDB),2)) %>%
     t() %>% 
     as.data.frame() %>%
     rownames_to_column()
