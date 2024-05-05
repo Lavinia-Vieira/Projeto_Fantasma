@@ -26,7 +26,6 @@ formato_data <- banco_final %>%
     Formato == ("CrossOver") ~ "CrossOver",
     Formato == ("Movie") ~ "Filme",
     Formato == ("Serie") ~ "Serie"))
-  
 
 formato_data$Decada <- formato_data$Decada %>%
   floor_date(unit = c("10 years")) %>%
@@ -60,11 +59,7 @@ temp_nota <- banco_final %>%
   group_by(season) %>%
   arrange(season) %>%
   rename("Temporada" = season, "IMDB" = imdb) %>%
-  select(Temporada, IMDB) %>%
-  mutate(
-    Variancia = round(var(IMDB), digits = 2))
-
-view(temp_nota)
+  select(Temporada, IMDB)
 
 #______ Boxplot 
 
@@ -76,11 +71,11 @@ ggplot(temp_nota) +
   ) +
   labs(x = "Temporada", y = "Nota IMDB") +
   estat_theme()
-ggsave("boxA2.pdf", path = ("D:/documentos/lavinia/PS/PF/Projeto_Fantasma/resultados"), width = 158, height = 93, units = "mm")
+ggsave("boxA2.pdf", width = 158, height = 93, units = "mm")
 
 #______ Quadro resumo
 
-print_quadro_resumo <- function(data, title="Medidas resumo da(o) [nome da variável]", label="quad:quadro_resumo1")
+print_quadro_resumo <- function(data, title="Medidas resumo da nota IMDB por temporada dos episodios", label="quad:quadro_resumoA2")
 {
   data <- temp_nota %>%
     summarize(`Média` = round(mean(IMDB),2),
@@ -158,12 +153,3 @@ temp_nota %>%
 #______ Remove ----
   
 rm()
-
-#______ sei la ----
-
- # %>%
-  mutate(
-    freq_relativa = round(Total / sum(Total) * 100,1)
-  )
-
-# temp_nota$Variancia <- str_replace(temp_nota$Variancia, "\\.", ",")
