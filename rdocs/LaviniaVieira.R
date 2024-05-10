@@ -64,7 +64,7 @@ temp_nota <- banco_final %>%
 #______ Boxplot 
 
 ggplot(temp_nota) +
-  aes(x = reorder(Temporada, IMDB, FUN = median), y = IMDB) +
+  aes(x = reorder(Temporada, IMDB), y = IMDB) +
   geom_boxplot(fill = c("#A11D21"), width = 0.5) +
   stat_summary(
     fun = "mean", geom = "point", shape = 23, size = 3, fill = "white"
@@ -149,6 +149,56 @@ print_quadro_resumo <- function(data, title="Medidas resumo da nota IMDB por tem
 temp_nota %>%
   group_by(Temporada) %>%
   print_quadro_resumo()
+
+#______ Analise 3 ----
+
+#______ Organizacao do banco de dados
+
+banco_final %>%
+  select(setting_terrain) %>%
+  count(setting_terrain, sort = TRUE) %>%
+  head(setting_terrain, n = 3)
+
+terreno_armadilha <- banco_final %>%
+  select(setting_terrain, trap_work_first) %>%
+  rename("Terreno" = setting_terrain, "Armadilha_ativada" = trap_work_first) %>%
+  filter(Terreno %in% c("Urban","Rural", "Forest")) %>%
+  na.omit() %>%
+  mutate(Terreno = case_when(
+    Terreno == "Urban" ~ "Urbano",
+    Terreno == "Rural" ~ "Rural",
+    Terreno == "Forest" ~ "Floresta")) %>%
+  mutate(Armadilha_ativada = case_when(
+    Armadilha_ativada == "FALSE" ~ "Nao",
+    Armadilha_ativada == "TRUE" ~ "Sim"
+  )) %>%
+  group_by(Terreno, Armadilha_ativada) %>%
+  summarise(freq = n()) %>%
+  mutate(
+    freq_relativa = round(freq / sum(freq) * 100,1)) %>%
+  arrange(terreno_armadilha)
+
+#______ Grafico colunas bivariado
+
+porcentagens <- str_c(terreno_armadilha$freq_relativa, "%") %>% str_replace("\\.", ",")
+
+legendas <- str_squish(str_c(terreno_armadilha$freq, " (", porcentagens, ")"))
+
+ggplot(terreno_armadilha) +
+  aes(
+    x = fct_reorder(Terreno, freq, .desc = T), y = freq,
+    fill = Armadilha_ativada, label = legendas
+  ) +
+  geom_col(position = position_dodge2(preserve = "single", padding =
+                                        0)) +
+  geom_text(
+    position = position_dodge(width = .9),
+    vjust = -0.5, hjust = 0.5,
+    size = 3
+  ) +
+  labs(x = "Terreno", y = "Frequencia") +
+  estat_theme()
+ggsave("colunasBiFreqA3.pdf", width = 158, height = 93, units = "mm")
 
 #______ Remove ----
   
