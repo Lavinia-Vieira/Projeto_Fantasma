@@ -20,20 +20,20 @@ View(banco_final)
 
 formato_data <- banco_final %>%
   select(format, date_aired) %>%
-  rename("Formato" = format, "Decada"= date_aired) %>%
+  rename("Formato" = format, "Década"= date_aired) %>%
   mutate(
     Formato = case_when(
     Formato == ("CrossOver") ~ "CrossOver",
     Formato == ("Movie") ~ "Filme",
-    Formato == ("Serie") ~ "Serie"))
+    Formato == ("Serie") ~ "Série"))
 
-formato_data$Decada <- formato_data$Decada %>%
+formato_data$`Década` <- formato_data$`Década` %>%
   floor_date(unit = c("10 years")) %>%
   format("%Y") 
 
 formato_data <- formato_data %>%
-  group_by(Formato, Decada) %>%
-  arrange(Formato, Decada, sort = T, .by_group = T) %>%
+  group_by(Formato, `Década`) %>%
+  arrange(Formato, `Década`, sort = T, .by_group = T) %>%
   summarise(Total = n())
 
 # formatoData <- with(formato_data, table(Formato, Decada)) - Table com colunas logicas
@@ -41,10 +41,10 @@ formato_data <- formato_data %>%
 #______ Grafico de linhas
 
 ggplot(formato_data) +
-  aes(x = Decada, y = Total, group = Formato, colour = Formato) +
+  aes(x = `Década`, y = Total, group = Formato, colour = Formato) +
   geom_line(size = 1) +
   geom_point(size = 2) +
-  labs(x = "Decada", y = "Frequencia") +
+  labs(x = "Década", y = "Frequência") +
   estat_theme()
 ggsave("graficoLinhasA1.pdf",  width = 158, height = 93, units = "mm")
 
@@ -161,21 +161,21 @@ banco_final %>%
 
 terreno_armadilha <- banco_final %>%
   select(setting_terrain, trap_work_first) %>%
-  rename("Terreno" = setting_terrain, "Armadilha_ativada" = trap_work_first) %>%
+  rename("Terreno" = setting_terrain, "Armadilha é ativada na primeira tentativa" = trap_work_first) %>%
   filter(Terreno %in% c("Urban","Rural", "Forest")) %>%
   na.omit() %>%
   mutate(Terreno = case_when(
     Terreno == "Urban" ~ "Urbano",
     Terreno == "Rural" ~ "Rural",
     Terreno == "Forest" ~ "Floresta")) %>%
-  mutate(Armadilha_ativada = case_when(
-    Armadilha_ativada == "FALSE" ~ "Nao",
-    Armadilha_ativada == "TRUE" ~ "Sim"
-  )) %>%
-  group_by(Terreno, Armadilha_ativada) %>%
+  mutate(`Armadilha é ativada na primeira tentativa` = case_when(
+    `Armadilha é ativada na primeira tentativa` == "FALSE" ~ "Não",
+    `Armadilha é ativada na primeira tentativa` == "TRUE" ~ "Sim"
+    )) %>%
+  group_by(Terreno, `Armadilha é ativada na primeira tentativa`) %>%
   summarise(freq = n()) %>%
   mutate(
-    freq_relativa = round(freq / sum(freq) * 100,1)) %>%
+    freq_relativa = round(freq / sum(freq) * 100,2)) %>%
   arrange(terreno_armadilha)
 
 #______ Grafico colunas bivariado
@@ -187,7 +187,7 @@ legendas <- str_squish(str_c(terreno_armadilha$freq, " (", porcentagens, ")"))
 ggplot(terreno_armadilha) +
   aes(
     x = fct_reorder(Terreno, freq, .desc = T), y = freq,
-    fill = Armadilha_ativada, label = legendas
+    fill = `Armadilha é ativada na primeira tentativa`, label = legendas
   ) +
   geom_col(position = position_dodge2(preserve = "single", padding =
                                         0)) +
@@ -196,9 +196,30 @@ ggplot(terreno_armadilha) +
     vjust = -0.5, hjust = 0.5,
     size = 3
   ) +
-  labs(x = "Terreno", y = "Frequencia") +
+  labs(x = "Terreno", y = "Frequência") +
   estat_theme()
 ggsave("colunasBiFreqA3.pdf", width = 158, height = 93, units = "mm")
+
+#______ Analise 4 ----
+
+#______ Organigacao do banco de dados
+
+engajamentoImdb <- banco_final %>%
+  select(imdb, engagement) %>%
+  rename("IMDB" = imdb, "Engajamento" = engagement) %>%
+  arrange(IMDB)
+
+#______ grafico dispersao
+
+ggplot(engajamentoImdb) +
+  aes(x = IMDB, y = Engajamento) +
+  geom_point(colour = "#A11D21", size = 3) +
+  labs(
+    x = "Nota IMDB",
+    y = "Engajamento"
+  ) +
+  estat_theme()
+ggsave("dispUniA4.pdf", width = 158, height = 93, units = "mm")
 
 #______ Remove ----
   
