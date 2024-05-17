@@ -161,21 +161,21 @@ banco_final %>%
 
 terreno_armadilha <- banco_final %>%
   select(setting_terrain, trap_work_first) %>%
-  rename("Terreno" = setting_terrain, "Armadilha é ativada na primeira tentativa" = trap_work_first) %>%
+  rename("Terreno" = setting_terrain, "Armadilha é ativada" = trap_work_first) %>%
   filter(Terreno %in% c("Urban","Rural", "Forest")) %>%
   na.omit() %>%
   mutate(Terreno = case_when(
     Terreno == "Urban" ~ "Urbano",
     Terreno == "Rural" ~ "Rural",
     Terreno == "Forest" ~ "Floresta")) %>%
-  mutate(`Armadilha é ativada na primeira tentativa` = case_when(
-    `Armadilha é ativada na primeira tentativa` == "FALSE" ~ "Não",
-    `Armadilha é ativada na primeira tentativa` == "TRUE" ~ "Sim"
+  mutate(`Armadilha é ativada` = case_when(
+    `Armadilha é ativada` == "FALSE" ~ "Não",
+    `Armadilha é ativada` == "TRUE" ~ "Sim"
     )) %>%
-  group_by(Terreno, `Armadilha é ativada na primeira tentativa`) %>%
+  group_by(Terreno, `Armadilha é ativada`) %>%
   summarise(freq = n()) %>%
   mutate(
-    freq_relativa = round(freq / sum(freq) * 100,2)) %>%
+    freq_relativa = round(freq / sum(freq) * 100,1)) %>%
   arrange(terreno_armadilha)
 
 #______ Grafico colunas bivariado
@@ -187,7 +187,7 @@ legendas <- str_squish(str_c(terreno_armadilha$freq, " (", porcentagens, ")"))
 ggplot(terreno_armadilha) +
   aes(
     x = fct_reorder(Terreno, freq, .desc = T), y = freq,
-    fill = `Armadilha é ativada na primeira tentativa`, label = legendas
+    fill = `Armadilha é ativada`, label = legendas
   ) +
   geom_col(position = position_dodge2(preserve = "single", padding =
                                         0)) +
@@ -220,6 +220,82 @@ ggplot(engajamentoImdb) +
   ) +
   estat_theme()
 ggsave("dispUniA4.pdf", width = 158, height = 93, units = "mm")
+
+#______ quadro resumo
+
+print_quadro_resumo <- function(data, title="Medidas resumo do Engajamento do episódio ou filme", label="quad:quadro_resumoA4")
+{
+  data <- engajamentoImdb %>%
+    summarize(`Média` = round(mean(Engajamento),2),
+              `Desvio Padrão` = round(sd(Engajamento),2),
+              `Variância` = round(var(Engajamento),2),
+              `Mínimo` = round(min(Engajamento),2),
+              `1º Quartil` = round(quantile(Engajamento, probs = .25),2),
+              `Mediana` = round(quantile(Engajamento, probs = .5),2),
+              `3º Quartil` = round(quantile(Engajamento, probs = .75),2),
+              `Máximo` = round(max(Engajamento),2)) %>%
+    t() %>% 
+    as.data.frame() %>%
+    rownames_to_column()
+  
+  latex <- str_c("\\begin{quadro}[H]
+\t\\caption{", title, "}
+\t\\centering
+\t\\begin{adjustbox}{max width=\\textwidth}
+\t\\begin{tabular}{", sep="")
+  
+  col_count <- ncol(data)
+  row_count <- nrow(data)
+  latex <- str_c(latex, "| l", "|", sep=" ")
+  for (i in seq(2, col_count))
+  {
+    latex <- str_c(latex, "S", sep=" ")
+  }
+  
+  latex <- str_c(latex, "|}\n\t\\toprule\n\t\t", sep="")
+  
+  if (col_count > 2)
+  {
+    for (i in seq(1,col_count))
+    {
+      if (i == 1)
+        latex <- str_c(latex, "\\textbf{Estatística}", sep="")
+      else
+        latex <- str_c(latex, " \\textbf{", data[1, i], "}", sep="")
+      
+      if (i < col_count)
+        latex <- str_c(latex, "&", sep=" ")
+      else
+        latex <- str_c(latex, "\\\\\n", sep=" ")
+    }
+  }
+  else
+  {
+    latex <- str_c(latex, "\\textbf{Estatística} & \\textbf{Valor} \\\\\n", sep="")  
+  }
+  
+  latex <- str_c(latex, "\t\t\\midrule\n", sep="")
+  
+  if (col_count > 2)
+    starting_number <- 2
+  else
+    starting_number <- 1
+  
+  for (i in seq(starting_number, row_count))
+  {
+    latex <- str_c(latex, "\t\t", str_flatten(t(data[i,]), collapse = " & "), " \\\\\n")
+  }
+  latex <- str_c(latex, "\t\\bottomrule
+\t\\end{tabular}
+\t\\label{", label, "}
+\t\\end{adjustbox}
+\\end{quadro}", sep="")
+  
+  writeLines(latex)
+}
+
+engajamentoImdb %>%
+  print_quadro_resumo()
 
 #______ Remove ----
   
