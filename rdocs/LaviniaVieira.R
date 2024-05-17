@@ -75,7 +75,7 @@ ggsave("boxA2.pdf", width = 158, height = 93, units = "mm")
 
 #______ Quadro resumo
 
-print_quadro_resumo <- function(data, title="Medidas resumo da nota IMDB por temporada dos episodios", label="quad:quadro_resumoA2")
+print_quadro_resumo <- function(data, title="Medidas resumo da nota IMDB por temporada dos episódios", label="quad:quadro_resumoA2")
 {
   data <- temp_nota %>%
     summarize(`Média` = round(mean(IMDB),2),
@@ -161,21 +161,21 @@ banco_final %>%
 
 terreno_armadilha <- banco_final %>%
   select(setting_terrain, trap_work_first) %>%
-  rename("Terreno" = setting_terrain, "Armadilha é ativada" = trap_work_first) %>%
+  rename("Terreno" = setting_terrain, "Armadilha é ativada na primeira tentativa" = trap_work_first) %>%
   filter(Terreno %in% c("Urban","Rural", "Forest")) %>%
   na.omit() %>%
   mutate(Terreno = case_when(
     Terreno == "Urban" ~ "Urbano",
     Terreno == "Rural" ~ "Rural",
     Terreno == "Forest" ~ "Floresta")) %>%
-  mutate(`Armadilha é ativada` = case_when(
-    `Armadilha é ativada` == "FALSE" ~ "Não",
-    `Armadilha é ativada` == "TRUE" ~ "Sim"
+  mutate(`Armadilha é ativada na primeira tentativa` = case_when(
+    `Armadilha é ativada na primeira tentativa` == "FALSE" ~ "Não",
+    `Armadilha é ativada na primeira tentativa` == "TRUE" ~ "Sim"
     )) %>%
-  group_by(Terreno, `Armadilha é ativada`) %>%
+  group_by(Terreno, `Armadilha é ativada na primeira tentativa`) %>%
   summarise(freq = n()) %>%
   mutate(
-    freq_relativa = round(freq / sum(freq) * 100,1)) %>%
+    freq_relativa = round(freq / sum(freq) * 100,2)) %>%
   arrange(terreno_armadilha)
 
 #______ Grafico colunas bivariado
@@ -187,7 +187,7 @@ legendas <- str_squish(str_c(terreno_armadilha$freq, " (", porcentagens, ")"))
 ggplot(terreno_armadilha) +
   aes(
     x = fct_reorder(Terreno, freq, .desc = T), y = freq,
-    fill = `Armadilha é ativada`, label = legendas
+    fill = `Armadilha é ativada na primeira tentativa`, label = legendas
   ) +
   geom_col(position = position_dodge2(preserve = "single", padding =
                                         0)) +
