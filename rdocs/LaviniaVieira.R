@@ -62,6 +62,8 @@ temp_nota <- banco_final %>%
          "IMDb" = imdb) %>%
   select(Temporada, IMDb)
 
+temp_nota$Temporada <- str_c(temp_nota$Temporada, "°")
+
 #______ Boxplot 
 
 ggplot(temp_nota) +
@@ -316,12 +318,12 @@ round(var(eng_imdb$IMDb), 2)
 #______ Organizacao do banco de dados
 
 eng_personagem <- banco_final %>%
-  select(engagement, 20:24, 41) %>%
+  select(engagement, 20:24, 41:42) %>%
   rename("Engajamento" = engagement, "Fred" = caught_fred,
          "Daphnie" = caught_daphnie, "Velma" = caught_velma,
          "Salsicha" = caught_shaggy, "Scooby" = caught_scooby,
-         "Outro" = caught_other) %>%
-  pivot_longer(cols = 2:7, names_to = "Personagem", values_to = "captura") %>% 
+         "Outro" = caught_other, "Nenhum" = caught_not) %>%
+  pivot_longer(cols = 2:8, names_to = "Personagem", values_to = "captura") %>% 
   filter(captura == T) %>%
   select(-captura) %>%
   group_by(Personagem) %>%
